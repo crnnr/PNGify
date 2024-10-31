@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -37,7 +38,10 @@ func main() {
 		openFileDialog.Show()
 	})
 
+	outputPathLabel := widget.NewLabel("")
+
 	encodeButton := widget.NewButton("Encode", func() {
+		var outputPath string
 		if encodeOption.Selected == "Text" {
 			text := textEntry.Text
 			if text == "" {
@@ -45,8 +49,9 @@ func main() {
 				return
 			}
 			img := image.NewImage([]byte(text))
+			outputPath = filepath.Join(os.TempDir(), "output.png")
 			img.MakeImage()
-			dialog.ShowInformation("Success", "Text encoded to output.png", w)
+			dialog.ShowInformation("Success", fmt.Sprintf("Text encoded to %s", outputPath), w)
 		} else if encodeOption.Selected == "File" {
 			filePath := fileLabel.Text
 			if filePath == "No file selected" {
@@ -60,9 +65,12 @@ func main() {
 			}
 			img := image.NewImage(content)
 			img.MakeText([]byte("filename"), []byte(filePath))
+			outputDir := filepath.Dir(filePath)
+			outputPath = filepath.Join(outputDir, "output.png")
 			img.MakeImage()
-			dialog.ShowInformation("Success", "File encoded to output.png", w)
+			dialog.ShowInformation("Success", fmt.Sprintf("File encoded to %s", outputPath), w)
 		}
+		outputPathLabel.SetText(fmt.Sprintf("Encoded file saved at: %s", outputPath))
 	})
 
 	encodeContent := container.NewVBox(
@@ -70,6 +78,7 @@ func main() {
 		textEntry,
 		container.NewHBox(selectFileButton, fileLabel),
 		encodeButton,
+		outputPathLabel,
 	)
 
 	// Decode Tab
